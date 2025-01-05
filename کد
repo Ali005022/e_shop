@@ -1,0 +1,690 @@
+from django.urls import reverse
+from django.views import View
+from django.shortcuts import render, get_object_or_404, redirect
+from django.core.mail import send_mail
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.contrib.admin.views.decorators import staff_member_required
+import random
+from .models import Product, Cart, CartItem
+from .forms import ProductForm, RegisterForm, SignUpForm
+
+class HomeView(View):
+    def get(self, request, *args, **kwargs):
+        featured_products = Product.objects.all()
+        return render(request, 'store/home.html', {'featured_products': featured_products})
+
+from django.views.generic import ListView
+from .models import Product
+
+from django.shortcuts import render
+from django.views.generic import ListView
+from .models import Product, Category
+
+from django.shortcuts import render
+from django.views import View
+from .models import Category
+
+class CategoryListView(View):
+    def get(self, request):
+        # گرفتن تمام دسته‌بندی‌ها از پایگاه داده
+        categories = Category.objects.all()
+        return render(request, 'categories.html', {'categories': categories})
+
+
+class ProductListView(ListView):
+    model = Product
+    template_name = 'store/products.html'  # مسیر قالب به‌روزرسانی شده
+    context_object_name = 'products'       # نام متغیر در قالب
+    paginate_by = 12                       # تعداد محصولات در هر صفحه
+
+    def get_queryset(self):
+        """
+        فیلتر کردن محصولات بر اساس عبارت جستجو و دسته‌بندی.
+        """
+        query = self.request.GET.get('q', '')  # عبارت جستجو
+        category_id = self.request.GET.get('category', None)  # دسته‌بندی (اگر وجود داشته باشد)
+
+        queryset = Product.objects.all()  # تمام محصولات را بارگذاری می‌کنیم
+
+        if query:
+            queryset = queryset.filter(name__icontains=query)  # جستجو بر اساس نام محصول
+        
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)  # فیلتر بر اساس دسته‌بندی
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Category.objects.all()  # لیست تمام دسته‌بندی‌ها برای فیلتر
+        return context
+
+
+from django.core.mail import send_mail
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.views import View
+import random
+
+from django.contrib.auth import authenticate, login
+from django.core.mail import send_mail
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.views import View
+import random
+
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.http import HttpResponse
+from django.views import View
+import random
+from django.core.mail import send_mail
+from django.urls import reverse
+
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.http import HttpResponse
+from django.views import View
+import random
+from django.core.mail import send_mail
+from django.urls import reverse
+from django.contrib.auth.models import User
+
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from django.views import View
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
+import random
+
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.http import HttpResponse
+from django.views import View
+
+class CustomLoginView(View):
+    def get(self, request, *args, **kwargs):
+        # نمایش فرم ورود
+        return render(request, 'store/login.html')
+
+    def post(self, request, *args, **kwargs):
+        # دریافت ورودی از کاربر (ایمیل، شماره تلفن یا یوزرنیم)
+        identifier = request.POST.get('identifier')  # ورودی به‌عنوان identifier شناخته می‌شود
+        password = request.POST.get('password')
+
+        # جستجو برای کاربر با ایمیل، شماره تلفن یا یوزرنیم
+        user = None
+        if "@" in identifier:
+            # اگر ورودی شامل "@" بود، فرض می‌کنیم که ایمیل است
+            user = authenticate(request, username=identifier, password=password)
+        elif identifier.isdigit():
+            # اگر ورودی فقط شامل اعداد بود، فرض می‌کنیم که شماره تلفن است
+            user = authenticate(request, username=identifier, password=password)
+        else:
+            # در غیر این صورت، فرض می‌کنیم که ورودی یوزرنیم است
+            user = authenticate(request, username=identifier, password=password)
+
+        if user is not None:
+            # اگر کاربر پیدا شد، ورود انجام می‌شود
+            login(request, user)
+            return redirect('home')  # یا صفحه مورد نظر شما
+        else:
+            return HttpResponse("ایمیل/شماره تلفن/یوزرنیم یا کلمه عبور اشتباه است.")
+
+class VerifyLoginView(View):
+    def get(self, request, *args, **kwargs):
+        # نمایش فرم وارد کردن کد تأیید
+        return render(request, 'store/verify_login.html')
+
+    def post(self, request, *args, **kwargs):
+        # دریافت کد تأیید از فرم
+        input_code = request.POST.get('verification_code')
+        actual_code = request.session.get('verification_code')
+
+        if input_code == str(actual_code):
+            # ورود به سیستم پس از تأیید کد
+            email = request.session.get('email')
+
+            # پیدا کردن کاربر با ایمیل
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                return HttpResponse("کاربری با این ایمیل وجود ندارد.")
+
+            # وارد کردن کاربر
+            login(request, user)
+            return redirect('home')  # هدایت به صفحه خانه یا هر صفحه‌ای که مد نظر شماست
+        else:
+            return HttpResponse("کد تأیید اشتباه است.")
+
+
+
+
+
+
+from django.shortcuts import render, redirect
+from django.views import View
+from .models import Product, Cart, CartItem
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+
+@method_decorator(login_required, name='dispatch')
+class CartView(View):
+    def get(self, request):
+        try:
+            cart = Cart.objects.get(user=request.user)
+            cart_items = cart.cartitem_set.all()
+        except Cart.DoesNotExist:
+            cart_items = []
+        return render(request, 'store/cart.html', {'cart_items': cart_items, 'cart': cart})
+
+from django.http import JsonResponse
+
+from django.http import JsonResponse
+from django.views import View
+from .models import Product, Cart, CartItem
+
+from django.shortcuts import redirect
+from django.views import View
+from .models import Product, Cart, CartItem
+
+class AddToCartView(View):
+    def post(self, request, product_id):
+        product = Product.objects.get(id=product_id)
+        cart, created = Cart.objects.get_or_create(user=request.user)
+
+        quantity = int(request.POST.get('quantity', 1))
+        cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+
+        if created:
+            cart_item.quantity = quantity
+        else:
+            cart_item.quantity += quantity
+        
+        cart_item.save()
+
+        # هدایت به صفحه سبد خرید پس از افزودن محصول
+        return redirect('cart')  # نام URL صفحه سبد خرید شما
+
+
+
+# store/views.py
+from django.shortcuts import get_object_or_404, redirect
+from django.views import View
+from .models import CartItem
+
+class UpdateCartItemView(View):
+    def post(self, request, item_id):
+        # پیدا کردن آیتم مورد نظر در سبد خرید
+        item = get_object_or_404(CartItem, id=item_id)
+
+        # دریافت مقدار جدید تعداد از فرم
+        new_quantity = int(request.POST.get('quantity'))
+
+        # به‌روزرسانی تعداد آیتم
+        if new_quantity > 0:
+            item.quantity = new_quantity
+            item.save()
+
+        # بعد از به‌روزرسانی، به صفحه سبد خرید باز می‌گردیم
+        return redirect('cart')
+
+# store/views.py
+from django.shortcuts import get_object_or_404, redirect
+from django.views import View
+from .models import CartItem
+
+class RemoveFromCartView(View):
+    def post(self, request, item_id):
+        # پیدا کردن آیتم مورد نظر در سبد خرید
+        item = get_object_or_404(CartItem, id=item_id)
+
+        # حذف آیتم از سبد خرید
+        item.delete()
+
+        # بعد از حذف، به صفحه سبد خرید باز می‌گردیم
+        return redirect('cart')
+
+# views.py
+
+@method_decorator(login_required, name='dispatch')
+class CheckoutView(View):
+    def get(self, request, *args, **kwargs):
+        cart = get_object_or_404(Cart, user=request.user)
+        if cart.items.all().count() > 0:
+            # انجام عملیات تسویه حساب
+            cart.delete()
+            return render(request, 'store/success.html')
+        else:
+            return render(request, 'store/cart.html', {'error': 'Your cart is empty.'})
+
+
+class AddProductView(View):
+    def get(self, request, *args, **kwargs):
+        form = ProductForm()
+        return render(request, 'store/add_product.html', {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse('products'))
+        return render(request, 'store/add_product.html', {'form': form})
+
+from django.contrib import messages
+
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.contrib import messages
+from django.views import View
+from .forms import RegisterForm  # اطمینان حاصل کنید که فرم صحیح را وارد کرده‌اید
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.urls import reverse
+from django.views import View
+from .forms import SignUpForm
+
+from django.shortcuts import render, redirect
+from django.contrib.auth import login
+from django.contrib import messages
+from django.urls import reverse
+from .forms import SignUpForm
+from .models import Profile
+
+class RegisterView(View):
+    def get(self, request, *args, **kwargs):
+        form = SignUpForm()
+        return render(request, 'store/register.html', {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            # ثبت کاربر جدید
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data['password1'])  # تنظیم پسورد به صورت هش شده
+            user.save()
+
+            # ایجاد پروفایل کاربر جدید
+            profile = Profile.objects.create(user=user)
+            profile.email = form.cleaned_data.get('email')
+            profile.phone_number = form.cleaned_data.get('phone_number')  # ذخیره شماره تلفن
+            profile.save()
+
+            messages.success(request, 'ثبت‌نام با موفقیت انجام شد.')
+            return redirect(reverse('login'))  # ارجاع به صفحه لاگین بعد از ثبت‌نام موفق
+        else:
+            messages.error(request, 'لطفاً اطلاعات فرم را بررسی کنید.')
+
+        return render(request, 'store/register.html', {'form': form})
+
+
+
+class VerifyView(View):
+    def get(self, request, *args, **kwargs):
+        return render(request, 'store/verify.html')
+
+    def post(self, request, *args, **kwargs):
+        email = request.session.get('email')
+        verification_code = request.POST.get('verification_code')
+        if int(verification_code) == request.session.get('verification_code'):
+            user = authenticate(username=email, password='defaultpassword')
+            if user is None:
+                user = User.objects.create_user(username=email, email=email, password='defaultpassword')
+            login(request, user)
+            return redirect(reverse('products'))
+        else:
+            return render(request, 'store/verify.html', {'error': 'کد تأیید نامعتبر است'})
+        from django.shortcuts import render
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from .forms import UserProfileForm  # فرض بر این است که فرم پروفایل کاربر دارید
+
+@login_required
+def user_profile(request):
+    # اگر کاربر وارد شده است
+    user = request.user
+    form = UserProfileForm(instance=user)  # فرم با اطلاعات کاربر پر می‌شود
+
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()  # ذخیره اطلاعات جدید
+            return redirect('profile')  # بعد از ذخیره به پروفایل برمی‌گردد
+
+    context = {
+        'form': form
+    }
+    return render(request, 'store/user_profile.html', context)
+from django.shortcuts import render, redirect
+from django.contrib.auth.forms import UserChangeForm
+from django.contrib import messages
+from django.views import View
+from .models import Cart, Order
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.forms import UserChangeForm
+from django.contrib import messages
+from .models import Profile, Cart, Order
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.views import View
+from .forms import UserProfileForm  # وارد کردن فرم جدید
+from .models import Profile, Cart, Order
+
+class UserProfileView(View):
+    def get(self, request, *args, **kwargs):
+        # بررسی اینکه کاربر وارد شده است
+        if not request.user.is_authenticated:
+            return redirect('login')  # اگر کاربر وارد نشده باشد، به صفحه لاگین هدایت شود
+        
+        # بارگذاری فرم و اطلاعات کاربر برای ویرایش
+        form = UserProfileForm(instance=request.user.profile)  # استفاده از مدل پروفایل برای ویرایش
+        
+        cart = Cart.objects.filter(user=request.user).first()
+        orders = Order.objects.filter(user=request.user)
+        
+        context = {
+            'form': form,
+            'cart': cart,
+            'orders': orders,
+        }
+        return render(request, 'store/user_profile.html', context)
+
+    def post(self, request, *args, **kwargs):
+        # دریافت اطلاعات فرم و ویرایش پروفایل
+        form = UserProfileForm(request.POST, instance=request.user.profile)
+        
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'اطلاعات پروفایل شما با موفقیت بروزرسانی شد.')
+            return redirect('user_profile')  # ارجاع به صفحه پروفایل بعد از ذخیره تغییرات
+        else:
+            messages.error(request, 'لطفاً اطلاعات فرم را بررسی کنید.')
+        
+        return render(request, 'store/user_profile.html', {'form': form})
+
+# # class SignUpView(View):
+#     def get(self, request, *args, **kwargs):
+#         form = SignUpForm()
+#         return render(request, 'store/signup.html', {'form': form})
+
+#     def post(self, request, *args, **kwargs):
+#         form = SignUpForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             username = form.cleaned_data.get('username')
+#             raw_password = form.cleaned_data.get('password1')
+#             user = authenticate(username=username, password=raw_password)
+#             login(request, user)
+#             return redirect(reverse('home'))
+#         return render(request, 'store/signup.html', {'form': form})
+
+class LogoutView(View):
+    def get(self, request, *args, **kwargs):
+        logout(request)
+        return redirect(reverse('login'))
+
+
+from django.shortcuts import render, redirect
+from django.views import View
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils.decorators import method_decorator
+from .models import Product
+
+# دکوراتور برای دسترسی محدود به اعضای staff
+from django.shortcuts import render
+from django.views import View
+from django.contrib.auth.decorators import user_passes_test
+from django.utils.decorators import method_decorator
+from .models import Product
+
+
+from django.shortcuts import render
+from django.views import View
+from .models import Product
+from django.shortcuts import render
+from django.contrib.auth.models import User
+from django.views import View
+from .models import Product, Order, Cart
+
+
+
+
+from django.views.generic.detail import DetailView
+from .models import Product
+
+class ProductDetailView(DetailView):
+    model = Product
+    template_name = 'store/product_detail.html'
+    context_object_name = 'product'  # نام متغیری که در قالب می‌خواهیم استفاده کنیم
+
+# در فایل views.py
+
+def create_cart_for_user(user):
+    # این تابع یک سبد خرید جدید برای کاربر ایجاد می‌کند
+    cart, created = Cart.objects.get_or_create(user=user)
+    if created:
+        # در صورت نیاز می‌توانید عملیات دیگری را انجام دهید
+        pass
+    return cart
+
+
+# در فایل views.py
+
+from django.shortcuts import render
+from django.views import View
+from .models import Order
+
+class OrderHistoryView(View):
+    def get(self, request, *args, **kwargs):
+        # دریافت سفارشات کاربر و نمایش آن‌ها
+        user_orders = Order.objects.filter(user=request.user)
+        return render(request, 'store/order_history.html', {'orders': user_orders})
+    
+
+
+    from django.shortcuts import render
+from django.views import View
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils.decorators import method_decorator
+from .models import Product, Order, User
+
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils.decorators import method_decorator
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.views import View
+from .models import Product, Order, Cart, User
+
+
+
+from django.shortcuts import render, redirect
+from django.views import View
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from .models import Product, Order, User, Cart
+
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.shortcuts import render
+from django.views import View
+from .models import Product, Order, User
+
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.views import View
+from .models import Product, Order, User, Cart
+from django.shortcuts import render
+
+#from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.views import View
+from .models import Product, Order, User, Cart
+from django.shortcuts import render
+
+from django.shortcuts import redirect
+from django.contrib import messages
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.utils.decorators import method_decorator
+from django.views import View
+from .models import Product, Order, User
+
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.shortcuts import render, redirect
+from django.utils.decorators import method_decorator
+from django.views import View
+from .models import Product, Order, Category
+
+# دکوراتور برای بررسی ادمین بودن و ورود کاربر
+def staff_member_required(view_func):
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.is_staff:
+            return view_func(request, *args, **kwargs)
+        return redirect('login')  # هدایت به صفحه لاگین در صورت عدم تطابق
+    return _wrapped_view
+
+from django.shortcuts import get_object_or_404, redirect
+from django.views import View
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib import messages
+from .models import Product, Order, User, Category
+from .forms import ProductForm  # فرض بر این است که فرم ProductForm از قبل تعریف شده است
+
+@method_decorator([login_required, staff_member_required], name='dispatch')
+class AdminDashboardView(View):
+    def get(self, request, *args, **kwargs):
+        # دریافت داده‌ها از مدل‌ها
+        products = Product.objects.all()
+        orders = Order.objects.all().order_by('-date')[:5]  # آخرین 5 سفارش
+        users = User.objects.all()
+        categories = Category.objects.all()
+        total_sales = sum(order.total for order in orders if order.is_paid)
+        
+        # محاسبه تعداد سفارشات، محصولات و کاربران
+        order_count = orders.count()
+        product_count = products.count()
+        user_count = users.count()
+        category_count = categories.count()
+        
+        form = ProductForm()  # فرم برای افزودن محصول
+
+        context = {
+            'products': products,
+            'orders': orders,
+            'users': users,
+            'categories': categories,
+            'total_sales': total_sales,
+            'order_count': order_count,
+            'product_count': product_count,
+            'user_count': user_count,
+            'category_count': category_count,
+            'form': form,
+        }
+        return render(request, 'store/admin_dashboard.html', context)
+
+    def post(self, request, *args, **kwargs):
+        # بررسی نوع درخواست
+        if 'add_product' in request.POST:  # درخواست برای افزودن محصول
+            form = ProductForm(request.POST, request.FILES)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'محصول جدید با موفقیت اضافه شد.')
+            else:
+                messages.error(request, 'افزودن محصول با مشکل مواجه شد.')
+        
+        elif 'delete_product' in request.POST:  # درخواست برای حذف محصول
+            product_id = request.POST.get('product_id')
+            product = get_object_or_404(Product, id=product_id)
+            product.delete()
+            messages.success(request, 'محصول با موفقیت حذف شد.')
+        
+        return redirect('admin_dashboard')  # بازگشت به صفحه داشبورد
+
+
+
+@method_decorator(login_required, name='dispatch')
+class UserDashboardView(View):
+    def get(self, request, *args, **kwargs):
+        # بررسی اینکه کاربر وارد شده است
+        if not request.user.is_authenticated:
+            return redirect('login')  # اگر کاربر وارد نشده باشد، به صفحه لاگین هدایت شود
+        
+        cart = Cart.objects.filter(user=request.user).first()
+        orders = Order.objects.filter(user=request.user)
+        
+        context = {
+            'cart': cart,
+            'orders': orders,
+        }
+        return render(request, 'store/user_dashboard.html', context)
+
+
+
+# ویو داشبورد ادمین
+
+
+
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.shortcuts import render
+from django.views import View
+from .models import Cart, Order
+
+
+
+
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.shortcuts import render
+from .models import Product, Order, User
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.views import View
+from .models import Product, Order, User, Cart
+
+
+from django.contrib.auth.views import LoginView
+from django.urls import reverse_lazy
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.shortcuts import redirect
+from django.contrib import messages
+
+# views.py
+
+from django.views.generic import ListView
+from .models import Product
+
+class SearchView(ListView):
+    model = Product
+    template_name = 'store/search_results.html'  # قالب نتایج جستجو
+    context_object_name = 'results'  # نام متغیر برای استفاده در قالب
+    paginate_by = 10  # تعداد نتایج در هر صفحه (اختیاری)
+
+    def get_queryset(self):
+        query = self.request.GET.get('q', '')  # دریافت کوئری جستجو از URL
+        if query:
+            return Product.objects.filter(name__icontains=query)  # جستجو بر اساس نام محصول
+        return Product.objects.none()  # در صورت عدم وجود کوئری، هیچ نتیجه‌ای برگردانده نشود
+
+
+

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <title>تاریخچه سفارشات</title>
+    {% load static %}
+    <link href="https://stackpath.amazonaws.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'store/styles.css' %}">
+</head>
+<body>
+    <h1>تاریخچه سفارشات</h1>
+    {% if orders %}
+        <ul>
+            {% for order in orders %}
+                <li>شماره سفارش: {{ order.id }} - تاریخ: {{ order.date }} - مبلغ: {{ order.total }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>شما هیچ سفارشی ندارید.</p>
+    {% endif %}
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.amazonaws.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

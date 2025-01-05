@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fa">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پروفایل کاربری</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <h2 class="text-center mt-5">پروفایل کاربری</h2>
+
+        <!-- پیام‌های موفقیت یا خطا -->
+        {% if messages %}
+        <div class="alert alert-{{ messages.0.tags }} alert-dismissible fade show" role="alert">
+            {% for message in messages %}
+            <p>{{ message }}</p>
+            {% endfor %}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {% endif %}
+
+        <!-- فرم ویرایش پروفایل -->
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">نام کاربری</label>
+                <input type="text" class="form-control" id="username" value="{{ form.username.value }}" disabled>
+            </div>
+            <div class="form-group">
+                <label for="email">ایمیل</label>
+                <input type="email" class="form-control" id="email" name="email" value="{{ form.email.value }}">
+            </div>
+            <div class="form-group">
+                <label for="phone_number">شماره تلفن</label>
+                <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ profile.phone_number }}">
+            </div>
+            <div class="form-group">
+                <label for="bio">بیوگرافی</label>
+                <textarea class="form-control" id="bio" name="bio">{{ profile.bio }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="custom_user_id">شناسه کاربری</label>
+                <input type="text" class="form-control" id="custom_user_id" name="custom_user_id" value="{{ profile.custom_user_id }}">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">ذخیره تغییرات</button>
+        </form>
+
+        <!-- لیست سبد خرید و سفارشات -->
+        <h3 class="mt-5">سبد خرید</h3>
+        <ul>
+            {% if cart %}
+            <li>سبد خرید شما: {{ cart }}</li>
+            {% else %}
+            <li>سبد خرید شما خالی است.</li>
+            {% endif %}
+        </ul>
+
+        <h3 class="mt-5">سفارشات</h3>
+        <ul>
+            {% if orders %}
+            {% for order in orders %}
+            <li>سفارش {{ order.id }}: {{ order.status }}</li>
+            {% endfor %}
+            {% else %}
+            <li>شما هیچ سفارشی ندارید.</li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

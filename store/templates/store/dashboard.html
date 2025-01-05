@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Vazir', sans-serif;
+            background-color: #f4f7f6;
+            direction: rtl;
+        }
+        .dashboard-card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #2575fc;
+            color: white;
+        }
+        .sidebar {
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background-color: #343a40;
+            color: white;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            color: white;
+            padding: 15px;
+            display: block;
+            text-decoration: none;
+        }
+        .sidebar a:hover {
+            background-color: #007bff;
+        }
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h4 class="text-center text-white">داشبورد</h4>
+        <ul class="list-unstyled">
+            <li><a href="#">خانه</a></li>
+            <li><a href="#">سفارشات</a></li>
+            <li><a href="#">محصولات</a></li>
+            <li><a href="#">کاربران</a></li>
+            <li><a href="#">خروج</a></li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <h2 class="text-center mb-5">داشبورد</h2>
+        
+        {% if is_admin %}
+        <!-- نمایش اطلاعات ادمین -->
+        <div class="dashboard-card">
+            <h3 class="card-header">اطلاعات ادمین</h3>
+            <div class="card-body">
+                <p><strong>تعداد محصولات:</strong> {{ total_products }}</p>
+                <p><strong>تعداد سفارشات:</strong> {{ total_orders }}</p>
+                <p><strong>تعداد کاربران:</strong> {{ total_users }}</p>
+                <p><strong>مجموع فروش:</strong> {{ total_sales }} تومان</p>
+            </div>
+        </div>
+        {% else %}
+        <!-- نمایش اطلاعات کاربر عادی -->
+        <div class="dashboard-card">
+            <h3 class="card-header">اطلاعات پروفایل</h3>
+            <div class="card-body">
+                <p><strong>نام کاربری:</strong> {{ user.username }}</p>
+                <p><strong>تعداد سفارشات:</strong> {{ orders.count }}</p>
+                <p><strong>تعداد آیتم‌های سبد خرید:</strong> {{ cart.cartitem_set.count }}</p>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <h3 class="card-header">سفارشات شما</h3>
+            <div class="card-body">
+                {% if orders %}
+                    <ul>
+                        {% for order in orders %}
+                        <li>سفارش {{ order.id }} - وضعیت: {% if order.is_paid %}پرداخت شده{% else %}در حال پردازش{% endif %}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>شما هیچ سفارشی ندارید.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

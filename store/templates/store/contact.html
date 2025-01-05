@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فروشگاه آنلاین شمسی استور</title>
+    {% load static %}
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'store/styles.css' %}">
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            background-color: #343a40;
+        }
+        .banner {
+            background: url('{% static 'images/banner.jpg' %}') no-repeat center center;
+            background-size: cover;
+            height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+        .button-primary {
+            background-color: #ff6f61;
+            color: white;
+        }
+        .products, .categories, .special-offers {
+            padding: 60px 0;
+        }
+        .footer {
+            background-color: #343a40;
+            color: white;
+            padding: 20px 0;
+        }
+        .social-icons a {
+            margin: 0 10px;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- نوار ناوبری -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a href="{% url 'home' %}" class="navbar-brand">Shamsistore</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item"><a href="{% url 'products' %}" class="nav-link">محصولات</a></li>
+                    <li class="nav-item"><a href="{% url 'cart' %}" class="nav-link"><i class="fas fa-shopping-cart"></i> سبد خرید</a></li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item"><a href="#" class="nav-link">سلام, {{ user.username }}</a></li>
+                        <li class="nav-item"><a href="{% url 'logout' %}" class="nav-link">خروج</a></li>
+                    {% else %}
+                        <li class="nav-item"><a href="{% url 'login' %}" class="nav-link">ورود</a></li>
+                        <li class="nav-item"><a href="{% url 'register' %}" class="nav-link">ثبت‌نام</a></li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <form class="form-inline" action="{% url 'search' %}" method="get">
+                            <input class="form-control mr-sm-2" type="search" placeholder="جستجو..." aria-label="Search" name="q">
+                            <button class="btn btn-outline-light my-2 my-sm-0" type="submit">جستجو</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- بنر -->
+    <header class="banner">
+        <h1 class="display-4">فروشگاه آنلاین شمسی استور</h1>
+        <p class="lead">بهترین محصولات فناوری را همین حالا کشف کنید!</p>
+        <a href="{% url 'products' %}" class="btn button-primary btn-lg">مشاهده محصولات</a>
+    </header>
+
+    <!-- محصولات ویژه -->
+    <section class="products">
+        <div class="container">
+            <h2 class="text-center mb-4 font-weight-bold">محصولات ویژه</h2>
+            <div class="row">
+                {% for product in featured_products %}
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm">
+                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="text-muted">{{ product.price }} تومان</p>
+                            <a href="{% url 'product_detail' product.id %}" class="btn button-primary">مشاهده محصول</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- دسته‌بندی‌ها -->
+    <section class="categories">
+        <div class="container">
+            <h2 class="text-center mb-4 font-weight-bold">دسته‌بندی‌ها</h2>
+            <div class="row">
+                {% for category in categories %}
+                <div class="col-md-3 mb-4 text-center">
+                    <a href="{% url 'category_products' category.id %}" class="text-decoration-none">
+                        <div class="card shadow-sm border-0">
+                            <img src="{{ category.image.url }}" class="card-img-top" alt="{{ category.name }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ category.name }}</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- تخفیفات ویژه -->
+    <section class="special-offers">
+        <div class="container">
+            <h2 class="text-center mb-4 font-weight-bold">تخفیفات ویژه</h2>
+            <div class="row">
+                {% for product in discount_products %}
+                <div class="col-md-3 mb-4">
+                    <div class="card shadow-sm">
+                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="text-success">تخفیف: {{ product.discount }}%</p>
+                            <p class="text-muted"><del>{{ product.original_price }}</del> {{ product.price }} تومان</p>
+                            <a href="{% url 'product_detail' product.id %}" class="btn button-primary">خرید</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- فوتر -->
+    <footer class="footer">
+        <div class="container text-center">
+            <p>حقوق محفوظ است &copy; 2025</p>
+            <p><i class="fas fa-envelope"></i> تماس با ما: info@shamsistore.com</p>
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- اسکریپت‌ها -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

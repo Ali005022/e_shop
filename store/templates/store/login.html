@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود به سیستم</title>
+    {% load static %}
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Vazir', sans-serif;
+        }
+        .login-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .login-card .btn-primary {
+            background: #2575fc;
+            border: none;
+            transition: background 0.3s;
+        }
+        .login-card .btn-primary:hover {
+            background: #6a11cb;
+        }
+        .login-card a {
+            color: #2575fc;
+        }
+        .login-card a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h4 class="text-center mb-4">ورود به سیستم</h4>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="identifier">ایمیل، شماره تلفن یا یوزرنیم</label>
+                <input type="text" id="identifier" name="identifier" class="form-control" placeholder="ایمیل، شماره تلفن یا یوزرنیم خود را وارد کنید" required>
+            </div>
+            <div class="form-group">
+                <label for="password">کلمه عبور</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="کلمه عبور خود را وارد کنید" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">ورود</button>
+        </form>
+        <div class="mt-3 text-center">
+            <a href="{% url 'password_reset' %}">بازیابی کلمه عبور</a>
+        </div>
+        <div class="mt-3 text-center">
+            <span>حساب کاربری ندارید؟</span>
+            <a href="{% url 'register' %}">ثبت‌نام کنید</a>
+        </div>
+    </div>
+</body>
+</html>

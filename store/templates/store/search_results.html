@@ -1,0 +1,89 @@
+<!-- search_results.html -->
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نتایج جستجو</title>
+    
+    {% load static %} <!-- بارگذاری تگ static -->
+
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'store/styles.css' %}">
+</head>
+
+<body class="bg-light text-dark">
+    <!-- نوار ناوبری -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container">
+            <a href="{% url 'home' %}" class="navbar-brand font-weight-bold">Shamsistore</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item"><a href="{% url 'products' %}" class="nav-link">محصولات</a></li>
+                    <li class="nav-item"><a href="{% url 'cart' %}" class="nav-link"><i class="fas fa-shopping-cart"></i> سبد خرید</a></li>
+
+                    {% if user.is_authenticated %}
+                        <!-- نمایش نام کاربر هنگام لاگین -->
+                        <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-user"></i> سلام, {{ user.username }}</a></li>
+                        <li class="nav-item"><a href="{% url 'logout' %}" class="nav-link">خروج</a></li>
+                    {% else %}
+                        <!-- نمایش لینک ورود و ثبت‌نام اگر کاربر وارد نشده باشد -->
+                        <li class="nav-item"><a href="{% url 'login' %}" class="nav-link"><i class="fas fa-user"></i> ورود</a></li>
+                        <li class="nav-item"><a href="{% url 'register' %}" class="nav-link">ثبت‌نام</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5 pt-5">
+        <h2>نتایج جستجو برای: "{{ request.GET.q }}"</h2>
+
+        {% if results %}
+            <div class="row">
+                {% for product in results %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card shadow-sm">
+                            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                            <div class="card-body">
+                                <h5 class="card-title font-weight-bold">{{ product.name }}</h5>
+                                <p class="text-muted">{{ product.price }} تومان</p>
+                                <a href="{% url 'product_detail' product.id %}" class="btn btn-primary btn-block">مشاهده محصول</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- صفحه‌بندی -->
+            <div class="pagination">
+                <span class="step-links">
+                    {% if results.has_previous %}
+                        <a href="?q={{ request.GET.q }}&page=1">&laquo; اول</a>
+                        <a href="?q={{ request.GET.q }}&page={{ results.previous_page_number }}">قبلی</a>
+                    {% endif %}
+                    <span class="current">
+                        صفحه {{ results.number }} از {{ results.paginator.num_pages }}.
+                    </span>
+                    {% if results.has_next %}
+                        <a href="?q={{ request.GET.q }}&page={{ results.next_page_number }}">بعدی</a>
+                        <a href="?q={{ request.GET.q }}&page={{ results.paginator.num_pages }}">آخرین &raquo;</a>
+                    {% endif %}
+                </span>
+            </div>
+        {% else %}
+            <p>محصولی یافت نشد.</p>
+        {% endif %}
+    </div>
+
+    <!-- اسکریپت‌ها -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

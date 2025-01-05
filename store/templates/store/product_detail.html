@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }} - جزئیات محصول</title>
+    {% load static %}
+    <link href="https://fonts.googleapis.com/css2?family=Vazir&display=swap" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'store/styles.css' %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Vazir', sans-serif;
+            direction: rtl;
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            margin-bottom: 30px;
+            background-color: #343a40;
+        }
+        .navbar a.navbar-brand {
+            font-size: 1.5rem;
+        }
+        .navbar .nav-item .nav-link {
+            font-size: 1.1rem;
+        }
+        .navbar .nav-item .nav-link:hover {
+            background-color: #495057;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .product-image {
+            max-height: 400px;
+            object-fit: cover;
+        }
+        .product-info h2 {
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        .product-info p {
+            font-size: 1.2rem;
+            color: #6c757d;
+        }
+        .product-info h4 {
+            font-size: 1.5rem;
+            color: #28a745;
+        }
+        .btn-success {
+            font-size: 1.1rem;
+        }
+        .related-products .card {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border: none;
+            border-radius: 8px;
+        }
+        .related-products .card img {
+            border-radius: 8px 8px 0 0;
+        }
+        .related-products .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .footer {
+            background-color: #343a40;
+            padding: 20px;
+            color: white;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- نوار ناوبری -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a href="{% url 'home' %}" class="navbar-brand">فروشگاه</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item"><a href="{% url 'products' %}" class="nav-link">محصولات</a></li>
+                    <li class="nav-item"><a href="{% url 'cart' %}" class="nav-link"><i class="fas fa-shopping-cart"></i> سبد خرید</a></li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-user"></i> سلام, {{ user.username }}</a></li>
+                        <li class="nav-item"><a href="{% url 'logout' %}" class="nav-link">خروج</a></li>
+                    {% else %}
+                        <li class="nav-item"><a href="{% url 'login' %}" class="nav-link"><i class="fas fa-user"></i> ورود</a></li>
+                        <li class="nav-item"><a href="{% url 'register' %}" class="nav-link">ثبت‌نام</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- بخش جزئیات محصول -->
+    <div class="container mt-5">
+        <div class="row">
+            <!-- تصویر محصول -->
+            <div class="col-md-6">
+                <img src="{{ product.image.url }}" class="img-fluid rounded shadow-sm product-image" alt="{{ product.name }}">
+            </div>
+            <!-- اطلاعات محصول -->
+            <div class="col-md-6 product-info">
+                <h2>{{ product.name }}</h2>
+                <p>{{ product.description }}</p>
+                <h4>{{ product.price }} تومان</h4>
+                <form method="post" action="{% url 'add_to_cart' product.id %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="quantity">تعداد:</label>
+                        <input type="number" id="quantity" name="quantity" value="1" min="1" class="form-control w-25">
+                    </div>
+                    <button type="submit" class="btn btn-success btn-lg"><i class="fas fa-cart-plus"></i> افزودن به سبد خرید</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- محصولات مرتبط -->
+        <div class="mt-5 related-products">
+            <h4>محصولات مرتبط</h4>
+            <div class="row">
+                {% for related_product in related_products %}
+                <div class="col-md-3 mb-4">
+                    <div class="card">
+                        <img src="{{ related_product.image.url }}" class="card-img-top" alt="{{ related_product.name }}">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">{{ related_product.name }}</h6>
+                            <p class="text-primary">{{ related_product.price }} تومان</p>
+                            <a href="{% url 'product_detail' related_product.id %}" class="btn btn-outline-primary btn-sm">مشاهده جزئیات</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- فوتر -->
+    <footer class="footer">
+        <div class="container">
+            <span>© 2025 فروشگاه. تمامی حقوق محفوظ است.</span>
+        </div>
+    </footer>
+
+    <!-- اسکریپت‌های لازم -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

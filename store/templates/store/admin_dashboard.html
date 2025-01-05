@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد مدیریت</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Vazir', sans-serif;
+            direction: rtl;
+            text-align: right;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            min-height: 100vh;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            margin-top: 60px;
+        }
+
+        .container {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px;
+        }
+
+        .navbar {
+            background-color: #343a40;
+            border-radius: 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .navbar-brand, .nav-link, .navbar-text {
+            color: #fff !important;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #343a40;
+            height: 100vh;
+            position: fixed;
+            top: 60px;
+            right: 0;
+            padding-top: 20px;
+            z-index: 999;
+            border-radius: 10px;
+        }
+
+        .sidebar a {
+            color: #cfd8dc;
+            display: block;
+            padding: 15px;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        .sidebar a:hover {
+            background-color: #495057;
+            color: #fff;
+        }
+
+        .content {
+            margin-right: 260px;
+            padding: 20px;
+            width: calc(100% - 260px);
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .stats .card {
+            margin-bottom: 20px;
+        }
+
+        .stats .card-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .stats .card p {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        table th, table td {
+            text-align: center;
+            vertical-align: middle;
+            padding: 10px;
+        }
+
+        table th {
+            background-color: #343a40;
+            color: #fff;
+        }
+
+        table tbody tr:hover {
+            background-color: #e9ecef;
+        }
+
+        .btn {
+            background: #2575fc;
+            border: none;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #6a11cb;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            border: none;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            border: none;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            border: none;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+        }
+
+        .btn-success {
+            background: #28a745;
+            border: none;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <a class="navbar-brand" href="#">داشبورد مدیریت</a>
+        <div class="ml-auto">
+            <span class="navbar-text">سلام، {{ request.user.username }}</span>
+            <a href="{% url 'logout' %}" class="nav-link d-inline-block ml-3">خروج</a>
+        </div>
+    </nav>
+
+    <div class="sidebar">
+        <a href="#">خانه</a>
+        <a href="#">دسته‌بندی‌ها</a>
+        <a href="#">محصولات</a>
+        <a href="#">سفارشات</a>
+        <a href="#">کاربران</a>
+    </div>
+
+    <div class="content container">
+        <div class="stats row">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">محصولات</h5>
+                        <p>{{ product_count }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h5 class="card-title">سفارشات</h5>
+                        <p>{{ order_count }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <h5 class="card-title">کاربران</h5>
+                        <p>{{ user_count }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning">
+                    <div class="card-body">
+                        <h5 class="card-title">فروش کل</h5>
+                        <p>{{ total_sales }} تومان</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <h2 class="mt-4">نمودار آماری</h2>
+        <canvas id="adminChart" width="400" height="200"></canvas>
+
+        <script>
+            var ctx = document.getElementById('adminChart').getContext('2d');
+            var chartData = JSON.parse('{{ chart_data|escapejs }}');
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['محصولات', 'سفارشات', 'کاربران', 'دسته‌بندی‌ها'],
+                    datasets: [{
+                        label: 'تعداد',
+                        data: [chartData.products, chartData.orders, chartData.users, chartData.categories],
+                        backgroundColor: ['#007bff', '#28a745', '#17a2b8', '#ffc107'],
+                        borderColor: ['#007bff', '#28a745', '#17a2b8', '#ffc107'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        </script>
+
+        <h2 class="mt-4">محصولات</h2>
+        <table class="table table-bordered mt-3">
+            <thead>
+                <tr>
+                    <th>نام محصول</th>
+                    <th>قیمت</th>
+                    <th>تخفیف</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.price }} تومان</td>
+                    <td>{{ product.discount }}%</td>
+                    <td>
+                        <form method="POST" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="product_id" value="{{ product.id }}">
+                            <button type="submit" name="remove_discount" class="btn btn-danger btn-sm">حذف تخفیف</button>
+                        </form>
+                        <form method="POST" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="product_id" value="{{ product.id }}">
+                            <input type="number" name="discount" value="{{ product.discount }}" min="0" max="100" class="form-control form-control-sm d-inline" style="width: 80px;">
+                            <button type="submit" name="update_discount" class="btn btn-info btn-sm">ویرایش تخفیف</button>
+                        </form>
+                        <a href="{% url 'edit_product' product.id %}" class="btn btn-warning btn-sm">ویرایش</a>
+                        <form method="POST" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="product_id" value="{{ product.id }}">
+                            <button type="submit" name="delete_product" class="btn btn-danger btn-sm">حذف محصول</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+           <!-- Add product form -->
+           <h2 class="mt-4">اضافه کردن محصول</h2>
+           <form method="POST" enctype="multipart/form-data" class="mt-3">
+               {% csrf_token %}
+               {{ form.as_p }}
+               <button type="submit" name="add_product" class="btn btn-primary">افزودن محصول</button>
+           </form>
+   
+           <!-- Bulk discount form -->
+           <h2 class="mt-4">اعمال تخفیف برای همه محصولات</h2>
+           <form method="POST" class="mt-3">
+               {% csrf_token %}
+               <div class="form-group">
+                   <label for="bulk_discount">درصد تخفیف برای همه محصولات</label>
+                   <input type="number" name="bulk_discount" id="bulk_discount" class="form-control" min="0" max="100" required>
+               </div>
+               <button type="submit" name="apply_bulk_discount" class="btn btn-success">اعمال تخفیف</button>
+           </form>
+       </div>
+   </body>
+   </html>

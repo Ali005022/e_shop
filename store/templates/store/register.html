@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fa">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ثبت‌نام</title>
+    {% load static %}
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'store/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Vazir', sans-serif;
+            direction: rtl;
+            text-align: right;
+        }
+
+        .register-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            width: 100%;
+            max-width: 450px;
+            display: block;
+        }
+
+        .register-card .btn-primary {
+            background: #2575fc;
+            border: none;
+            transition: background 0.3s;
+        }
+
+        .register-card .btn-primary:hover {
+            background: #6a11cb;
+        }
+
+        .register-card a {
+            color: #2575fc;
+        }
+
+        .register-card a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            margin-top: 20px;
+        }
+
+        .form-group label {
+            font-weight: bold;
+        }
+
+        .register-card h4 {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .register-card .form-control {
+            border-radius: 5px;
+            height: 45px;
+        }
+
+        .text-danger {
+            font-size: 12px;
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="register-card animate__animated animate__fadeIn">
+        <h4 class="text-center mb-4">ثبت‌نام در فروشگاه آنلاین</h4>
+
+        <!-- پیام‌های موفقیت یا خطا -->
+        {% if messages %}
+        <div class="alert alert-{{ messages.0.tags }} alert-dismissible fade show" role="alert">
+            {% for message in messages %}
+            <p>{{ message }}</p>
+            {% endfor %}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- فیلد نام کاربری -->
+            <div class="form-group">
+                <label for="username">نام کاربری</label>
+                <input type="text" id="username" name="username" class="form-control" placeholder="نام کاربری خود را وارد کنید" value="{{ form.username.value }}" required>
+                {% if form.username.errors %}
+                <div class="text-danger">
+                    {% for error in form.username.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- فیلد ایمیل -->
+            <div class="form-group">
+                <label for="email">ایمیل</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="ایمیل خود را وارد کنید" value="{{ form.email.value }}" required>
+                {% if form.email.errors %}
+                <div class="text-danger">
+                    {% for error in form.email.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- فیلد شماره تلفن -->
+            <div class="form-group">
+                <label for="phone_number">شماره تلفن</label>
+                <input type="text" id="phone_number" name="phone_number" class="form-control" placeholder="شماره تلفن خود را وارد کنید" value="{{ form.phone_number.value }}" required>
+                {% if form.phone_number.errors %}
+                <div class="text-danger">
+                    {% for error in form.phone_number.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- فیلد کلمه عبور -->
+            <div class="form-group">
+                <label for="password1">کلمه عبور</label>
+                <input type="password" id="password1" name="password1" class="form-control" placeholder="کلمه عبور خود را وارد کنید" required>
+                {% if form.password1.errors %}
+                <div class="text-danger">
+                    {% for error in form.password1.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- فیلد تأیید کلمه عبور -->
+            <div class="form-group">
+                <label for="password2">تأیید کلمه عبور</label>
+                <input type="password" id="password2" name="password2" class="form-control" placeholder="کلمه عبور را دوباره وارد کنید" required>
+                {% if form.password2.errors %}
+                <div class="text-danger">
+                    {% for error in form.password2.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">ثبت‌نام</button>
+        </form>
+
+        <div class="mt-3 text-center">
+            <span>قبلاً حساب کاربری ساخته‌اید؟</span>
+            <a href="{% url 'login' %}">ورود</a>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>
