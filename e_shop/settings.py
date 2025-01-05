@@ -58,7 +58,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.facebook',
     'allauth.socialaccount.providers.twitter',
     #phone verify
-    'phone_verify',
+    'phone_verify','app',
 
 ]
 SITE_ID = 1
